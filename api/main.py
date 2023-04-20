@@ -1,14 +1,7 @@
 import json
 import os
 import psycopg2
-
-api_key = os.environ.get('DEVELOPER_KEY')
-host = os.environ.get('host')
-port = os.environ.get('port')
-database = os.environ.get('database')
-user = os.environ.get('user')
-password = os.environ.get('password')
-
+from googleapiclient.discovery import build
 
 def update_channel_stats():
     # 채널 ID 리스트 불러오기
@@ -16,9 +9,10 @@ def update_channel_stats():
         channel_id_list = f.read().splitlines()
 
     # youtube API client 생성
-    DEVELOPER_KEY = api_key
+    DEVELOPER_KEY = os.environ.get('DEVELOPER_KEY')
     YOUTUBE_API_SERVICE_NAME = 'youtube'
     YOUTUBE_API_VERSION = 'v3'
+    youtube = build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION, developerKey=DEVELOPER_KEY)
 
     # 빈 리스트 생성
     channel_data = []
@@ -52,15 +46,10 @@ def update_channel_stats():
             continue
 
     # postgresql에 연결
-    conn = psycopg2.connect(
-        host=host,
-        port=port,
-        database=database,
-        user=user,
-        password=password
-    )
+    DATABASE_URL = os.environ.get('DATABASE_URL')
+    conn = psycopg2.connect(DATABASE_URL, sslmode='require')
 
-    # 데이터프레임을 postgresql에 삽입
+    # 데이터를 PostgreSQL에 삽입
     cur = conn.cursor()
     for channel in channel_data:
         cur.execute(
@@ -70,7 +59,6 @@ def update_channel_stats():
     conn.commit()
     cur.close()
     conn.close()
-
 
 def handler(event, context):
     update_channel_stats()
