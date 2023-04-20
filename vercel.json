@@ -1,14 +1,21 @@
 {
-  "version": 2,
   "builds": [
     {
       "src": "main.py",
       "use": "@now/python",
-      "config": { "maxLambdaSize": "10mb" },
-      "command": "pip install google-api-python-client -t ."
+      "config": {
+        "maxLambdaSize": "10mb"
+      },
+      "env": {
+        "PYTHONPATH": "./"
+      },
+      "buildCommand": "pip install --upgrade google-api-python-client -t ./"
     }
   ],
   "routes": [
-    { "src": "/.*", "dest": "main.py" }
+    {
+      "src": "/.*",
+      "dest": "main.py"
+    }
   ]
 }
