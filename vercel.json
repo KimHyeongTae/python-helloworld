@@ -2,13 +2,13 @@
   "redirects": [{ "source": "/", "destination": "/api" }],
     "builds": [
     {
-      "src": "main.py",
+      "src": "index.py",
       "use": "@now/python",
       "config": { "maxLambdaSize": "10mb" },
       "buildCommand": "pip install google-api-python-client -t ./"
     }
   ],
   "routes": [
-    { "src": "/.*", "dest": "main.py" }
+    { "src": "/.*", "dest": "index.py" }
   ]
 }
