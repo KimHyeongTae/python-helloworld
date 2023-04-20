@@ -3,7 +3,7 @@ from http.server import BaseHTTPRequestHandler
 # from googleapiclient.discovery import build
 import psycopg2
 
-DEVELOPER_KEY = os.environ.get('DEVELOPER_KEY')
+api_key = os.environ.get('DEVELOPER_KEY')
 host = os.environ.get('host')
 port = os.environ.get('port')
 database = os.environ.get('database')
@@ -20,7 +20,7 @@ class handler(BaseHTTPRequestHandler):
         self.wfile.write('Hello, world!'.encode('utf-8'))
 
         # youtube data api 사용을 위한 인증키 로드
-        DEVELOPER_KEY = DEVELOPER_KEY
+        DEVELOPER_KEY = api_key
         YOUTUBE_API_SERVICE_NAME = 'youtube'
         YOUTUBE_API_VERSION = 'v3'
 
