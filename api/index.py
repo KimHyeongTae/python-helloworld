@@ -1,6 +1,5 @@
 import os
 from http.server import BaseHTTPRequestHandler
-import pandas as pd
 from googleapiclient.discovery import build
 import psycopg2
 
@@ -11,11 +10,12 @@ database = os.environ.get('database')
 user = os.environ.get('user')
 password = os.environ.get('password')
 
+
 class handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         self.send_response(200)
-        self.send_header('Content-type','text/plain')
+        self.send_header('Content-type', 'text/plain')
         self.end_headers()
         self.wfile.write('Hello, world!'.encode('utf-8'))
 
@@ -24,21 +24,20 @@ class handler(BaseHTTPRequestHandler):
         YOUTUBE_API_SERVICE_NAME = 'youtube'
         YOUTUBE_API_VERSION = 'v3'
 
-
         def update_channel_stats():
-            # CSV 파일에서 채널 ID 리스트 불러오기
-            channel_id_list = pd.read_csv("data/channels_renewal_202304031340.csv")
+            # 채널 ID 리스트 불러오기
+            with open('data/channels_renewal_202304031340.csv', 'r') as f:
+                channel_id_list = f.read().splitlines()
 
             # youtube API client 생성
             youtube = build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION, developerKey=DEVELOPER_KEY)
 
-            # 빈 데이터프레임 생성
-            channel_data = pd.DataFrame()
+            # 빈 리스트 생성
+            channel_data = []
 
             # 채널 ID 리스트를 순회하며 API 호출하여 데이터 추출
-            for i in range(len(channel_id_list)):
+            for channel_id in channel_id_list:
                 try:
-                    channel_id = channel_id_list["channel_id"][i]
                     search_response = youtube.channels().list(
                         # 'channel_id'를 대상으로 'snippet', 'statistics' 검색
                         part='id,snippet,statistics',
@@ -51,14 +50,16 @@ class handler(BaseHTTPRequestHandler):
                     snippet = search_response['items'][0]['snippet']
 
                     # stats 및 snippet dictionary에서 데이터 정리
-                    stats_series = pd.Series([channel_id, stats['viewCount'], stats['subscriberCount'], stats['videoCount'], snippet['title']],
-                                          index=['channel_id', 'view_count', 'subscriber_count', 'video_count', 'title'])
+                    channel = {
+                        'channel_id': channel_id,
+                        'view_count': stats['viewCount'],
+                        'subscriber_count': stats['subscriberCount'],
+                        'video_count': stats['videoCount'],
+                        'title': snippet['title']
+                    }
 
-                    channel_data = pd.concat([channel_data, stats_series.to_frame().transpose()], ignore_index=True)
+                    channel_data.append(channel)
 
-                    if i < len(channel_id_list):
-                      i = i+1
-                    else: break
                 except:
                     continue
 
@@ -73,15 +74,15 @@ class handler(BaseHTTPRequestHandler):
 
             # 데이터프레임을 postgresql에 삽입
             cur = conn.cursor()
-            for index, row in channel_data.iterrows():
-                cur.execute("INSERT INTO channel_stats (channel_id, channel_title, subscriber_count, view_count, video_count) VALUES (%s, %s, %s, %s, %s)",
-                            (row['channel_id'], row['title'], row['subscriber_count'], row['view_count'], row['video_count']))
+            for channel in channel_data:
+                cur.execute(
+                    "INSERT INTO channel_stats (channel_id, channel_title, subscriber_count, view_count, video_count) VALUES (%s, %s, %s, %s, %s)",
+                    (channel['channel_id'], channel['title'], channel['subscriber_count'], channel['view_count'],
+                     channel['video_count']))
             conn.commit()
             cur.close()
             conn.close()
 
         update_channel_stats()
 
-
-        
         return
