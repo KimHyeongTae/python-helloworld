@@ -1,6 +1,6 @@
 import os
 from http.server import BaseHTTPRequestHandler
-from googleapiclient.discovery import build
+from google-api-python-client.discovery import build
 import psycopg2
 
 DEVELOPER_KEY = os.environ.get('DEVELOPER_KEY')
