@@ -1,4 +1,15 @@
+import os
 from http.server import BaseHTTPRequestHandler
+import pandas as pd
+from googleapiclient.discovery import build
+import psycopg2
+
+DEVELOPER_KEY = os.environ.get('DEVELOPER_KEY')
+host = os.environ.get('host')
+port = os.environ.get('port')
+database = os.environ.get('database')
+user = os.environ.get('user')
+password = os.environ.get('password')
 
 class handler(BaseHTTPRequestHandler):
 
@@ -7,27 +18,16 @@ class handler(BaseHTTPRequestHandler):
         self.send_header('Content-type','text/plain')
         self.end_headers()
         self.wfile.write('Hello, world!'.encode('utf-8'))
-        
-        import pandas as pd
-        from googleapiclient.discovery import build
-        import psycopg2
-
 
         # youtube data api 사용을 위한 인증키 로드
-        DEVELOPER_KEY = 'AIzaSyB0FKuJ6Va9lj01erwZwmfs-9xu3MLxLLo'
+        DEVELOPER_KEY = DEVELOPER_KEY
         YOUTUBE_API_SERVICE_NAME = 'youtube'
         YOUTUBE_API_VERSION = 'v3'
 
-        # postgresql 연결 정보
-        host = "db.rfibezfnislmyoyyalvx.supabase.co"
-        port = "5432"
-        database = "postgres"
-        user = "postgres"
-        password = "dkdnjRhksflwk0215!"
 
         def update_channel_stats():
             # CSV 파일에서 채널 ID 리스트 불러오기
-            channel_id_list = pd.read_csv("channels_renewal_202304031340.csv")
+            channel_id_list = pd.read_csv("data/channels_renewal_202304031340.csv")
 
             # youtube API client 생성
             youtube = build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION, developerKey=DEVELOPER_KEY)
