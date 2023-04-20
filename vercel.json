@@ -1,21 +1,3 @@
 {
-  "builds": [
-    {
-      "src": "main.py",
-      "use": "@now/python",
-      "config": {
-        "maxLambdaSize": "10mb"
-      },
-      "env": {
-        "PYTHONPATH": "./"
-      },
-      "buildCommand": "pip install --upgrade google-api-python-client -t ./"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/.*",
-      "dest": "main.py"
-    }
-  ]
+  "redirects": [{ "source": "/", "destination": "/api" }]
 }
